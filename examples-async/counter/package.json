@@ -1,0 +1,23 @@
+{
+  "name": "counter",
+  "version": "0.0.1",
+  "private": true,
+  "devDependencies": {
+    "babel-plugin-regenerator": "^6.0.3",
+    "babel-polyfill": "^6.23.0",
+    "babel-preset-latest": "^6.24.0",
+    "babel-preset-react": "^6.23.0",
+    "babelify": "^7.3.0",
+    "browserify": "^14.1.0",
+    "enzyme": "^2.8.0",
+    "react-addons-test-utils": "^15.3.0"
+  },
+  "dependencies": {
+    "react": "^15.3.0",
+    "react-dom": "^15.3.0",
+    "react-redux": "^5.0.2"
+  },
+  "scripts": {
+    "build": "browserify -t babelify src/index.js -o public/bundle.js"
+  }
+}
