@@ -18,5 +18,5 @@ export default function compose(...funcs) {
     return funcs[0]
   }
 
-  return funcs.reduce((a, b) => (...args) => a(b(...args)))
+  return funcs.reduce((a, b) => async (...args) => await a(await b(...args)))
 }

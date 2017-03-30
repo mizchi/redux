@@ -17,8 +17,8 @@ import compose from './compose'
  * @returns {Function} A store enhancer applying the middleware.
  */
 export default function applyMiddleware(...middlewares) {
-  return (createStore) => (reducer, preloadedState, enhancer) => {
-    const store = createStore(reducer, preloadedState, enhancer)
+  return (createStore) => async (reducer, preloadedState, enhancer) => {
+    const store = await createStore(reducer, preloadedState, enhancer)
     let dispatch = store.dispatch
     let chain = []
 
@@ -27,7 +27,7 @@ export default function applyMiddleware(...middlewares) {
       dispatch: (action) => dispatch(action)
     }
     chain = middlewares.map(middleware => middleware(middlewareAPI))
-    dispatch = compose(...chain)(store.dispatch)
+    dispatch = await compose(...chain)(store.dispatch)
 
     return {
       ...store,

@@ -6,8 +6,8 @@ describe('bindActionCreators', () => {
   let store
   let actionCreatorFunctions
 
-  beforeEach(() => {
-    store = createStore(todos)
+  beforeEach(async () => {
+    store = await createStore(todos)
     actionCreatorFunctions = { ...actionCreators }
     Object.keys(actionCreatorFunctions).forEach(key => {
       if (typeof actionCreatorFunctions[key] !== 'function') {
@@ -16,7 +16,7 @@ describe('bindActionCreators', () => {
     })
   })
 
-  it('wraps the action creators with the dispatch function', () => {
+  it('wraps the action creators with the dispatch function', async () => {
     const _console = console
     global.console = { error: jest.fn() }
     const boundActionCreators = bindActionCreators(actionCreators, store.dispatch)
@@ -26,7 +26,7 @@ describe('bindActionCreators', () => {
       Object.keys(actionCreatorFunctions)
     )
 
-    const action = boundActionCreators.addTodo('Hello')
+    const action = await boundActionCreators.addTodo('Hello')
     expect(action).toEqual(
       actionCreators.addTodo('Hello')
     )
@@ -58,11 +58,11 @@ describe('bindActionCreators', () => {
     global.console = _console
   })
 
-  it('supports wrapping a single function only', () => {
+  it('supports wrapping a single function only', async () => {
     const actionCreator = actionCreators.addTodo
     const boundActionCreator = bindActionCreators(actionCreator, store.dispatch)
 
-    const action = boundActionCreator('Hello')
+    const action = await boundActionCreator('Hello')
     expect(action).toEqual(actionCreator('Hello'))
     expect(store.getState()).toEqual([
       { id: 1, text: 'Hello' }

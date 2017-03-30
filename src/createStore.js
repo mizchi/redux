@@ -36,7 +36,7 @@ export const ActionTypes = {
  * @returns {Store} A Redux store that lets you read the state, dispatch actions
  * and subscribe to changes.
  */
-export default function createStore(reducer, preloadedState, enhancer) {
+export default async function createStore(reducer, preloadedState, enhancer) {
   if (typeof preloadedState === 'function' && typeof enhancer === 'undefined') {
     enhancer = preloadedState
     preloadedState = undefined
@@ -59,6 +59,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
   let currentListeners = []
   let nextListeners = currentListeners
   let isDispatching = false
+  let waitingActionQueue = []
 
   function ensureCanMutateNextListeners() {
     if (nextListeners === currentListeners) {
@@ -146,7 +147,31 @@ export default function createStore(reducer, preloadedState, enhancer) {
    * Note that, if you use a custom middleware, it may wrap `dispatch()` to
    * return something else (for example, a Promise you can await).
    */
-  function dispatch(action) {
+  async function dispatch(action) {
+    if (isDispatching) {
+      waitingActionQueue.push(action)
+      return action
+    }
+
+    isDispatching = true
+    await originalDispatch(action)
+    const exec = async () => {
+      const nextAction = waitingActionQueue.shift()
+      if (nextAction) {
+        await originalDispatch(nextAction)
+        return exec()
+      } else {
+        return
+      }
+    }
+
+    await exec()
+    isDispatching = false
+    return action
+  }
+
+  // Wrapped
+  async function originalDispatch(action) {
     if (!isPlainObject(action)) {
       throw new Error(
         'Actions must be plain objects. ' +
@@ -161,21 +186,12 @@ export default function createStore(reducer, preloadedState, enhancer) {
       )
     }
 
-    if (isDispatching) {
-      throw new Error('Reducers may not dispatch actions.')
-    }
-
-    try {
-      isDispatching = true
-      currentState = currentReducer(currentState, action)
-    } finally {
-      isDispatching = false
-    }
+    currentState = await currentReducer(currentState, action)
 
     const listeners = currentListeners = nextListeners
     for (let i = 0; i < listeners.length; i++) {
       const listener = listeners[i]
-      listener()
+      await listener()
     }
 
     return action
@@ -191,13 +207,13 @@ export default function createStore(reducer, preloadedState, enhancer) {
    * @param {Function} nextReducer The reducer for the store to use instead.
    * @returns {void}
    */
-  function replaceReducer(nextReducer) {
+  async function replaceReducer(nextReducer) {
     if (typeof nextReducer !== 'function') {
       throw new Error('Expected the nextReducer to be a function.')
     }
 
     currentReducer = nextReducer
-    dispatch({ type: ActionTypes.INIT })
+    await dispatch({ type: ActionTypes.INIT })
   }
 
   /**
@@ -242,7 +258,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
   // When a store is created, an "INIT" action is dispatched so that every
   // reducer returns their initial state. This effectively populates
   // the initial state tree.
-  dispatch({ type: ActionTypes.INIT })
+  await dispatch({ type: ActionTypes.INIT })
 
   return {
     dispatch,
