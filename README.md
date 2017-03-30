@@ -2,6 +2,8 @@
 
 Do not use in production. This is PoC and WIP.
 
+![](https://i.gyazo.com/6e67a6a0b8f86ba8b3fde9bbf7a68e44.gif)
+
 ## Concepts
 
 reducer can take promise.
