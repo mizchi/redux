@@ -1,3 +1,45 @@
+# Experimental async-redux
+
+Do not use in production. This is PoC and WIP.
+
+## Concepts
+
+reducer can take promise.
+
+```js
+export default async function counter(state = 0, action) {
+  switch (action.type) {
+    case 'INCREMENT':
+      return state + 1
+    case 'INCREMENT_ASYNC':
+      const inc = await Promise.resolve(1)
+      return state + inc
+    default:
+      return state
+  }
+}
+```
+
+See examples-async/counter
+
+mizchi/flumpt has internal queue to handle actions.
+
+## Changes
+
+- `reducer(state: State, action: Action): State` => `reducer(state: State, Action): State | Promise<State>`
+- `dispatch(action: Action): Action` => `dispatch(action: Action): Promise<Action>`
+- `createStore(...args): Store` => `createStore(...args): Promise<Store>`
+
+## TODO
+
+- [x] async dispatch
+- [x] async reducer
+- [x] Implement internal Promise queue to pass actions sequentially.
+- [ ] Ensure same listener order to store.subscribe
+- [ ] Support original redux middleware
+- [ ] Catch Promise.reject() in test (https://facebook.github.io/jest/docs/tutorial-async.html is broken)
+----
+
 # <a href='http://redux.js.org'><img src='https://camo.githubusercontent.com/f28b5bc7822f1b7bb28a96d8d09e7d79169248fc/687474703a2f2f692e696d6775722e636f6d2f4a65567164514d2e706e67' height='60'></a>
 
 Redux is a predictable state container for JavaScript apps.  
